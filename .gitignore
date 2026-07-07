@@ -1,0 +1,11 @@
+# Swift Package Manager build output
+.build/
+
+# Assembled app bundle (produced by build-app.sh)
+Cloud Session Manager.app/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# macOS
+.DS_Store
