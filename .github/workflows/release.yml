@@ -1,0 +1,83 @@
+name: Release
+
+# Manually triggered from the Actions tab. Pick how to bump the version and the
+# workflow computes the next SemVer from the latest v* tag, creates that tag,
+# builds the signed .app, zips it, and publishes a GitHub Release.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump"
+        type: choice
+        required: true
+        default: patch
+        options: [patch, minor, major]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # create tags and releases
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need full history + tags to compute the next version
+
+      - name: Compute next version
+        id: version
+        run: |
+          set -euo pipefail
+          # Latest v-prefixed tag by SemVer order; default to v0.0.0 if none.
+          latest="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+          latest="${latest:-v0.0.0}"
+          current="${latest#v}"
+          IFS='.' read -r major minor patch <<< "$current"
+          case "${{ github.event.inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          next="${major}.${minor}.${patch}"
+          echo "Previous: ${latest}  ->  Next: v${next}"
+          echo "version=${next}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${next}" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        run: ./run-tests.sh
+
+      - name: Build app bundle
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./build-app.sh
+
+      - name: Package release zip
+        id: package
+        run: |
+          set -euo pipefail
+          zip="CloudSessionManager-${{ steps.version.outputs.tag }}.zip"
+          # ditto preserves the bundle's structure, code signature, and metadata.
+          ditto -c -k --sequesterRsrc --keepParent "Cloud Session Manager.app" "$zip"
+          echo "zip=${zip}" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          set -euo pipefail
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "${{ steps.version.outputs.tag }}" \
+            "${{ steps.package.outputs.zip }}" \
+            --title "${{ steps.version.outputs.tag }}" \
+            --generate-notes

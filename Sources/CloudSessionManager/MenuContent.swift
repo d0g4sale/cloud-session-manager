@@ -60,6 +60,8 @@ struct MenuContent: View {
 
         Divider()
 
+        Text("Version \(AppVersion.displayString)")
+
         Button("Quit Cloud Session Manager") {
             NSApp.terminate(nil)
         }

@@ -61,6 +61,31 @@ its framework/dylib paths aren't wired into `swift test` there, so `run-tests.sh
 passes them explicitly. With a full Xcode selected (`xcode-select`), a plain
 `swift test` works too.
 
+## Continuous integration & releases
+
+Two GitHub Actions workflows (both on `macos-14` runners):
+
+- **CI** (`.github/workflows/ci.yml`) — builds and runs the test suite on every push
+  to `main` and every pull request, then assembles the `.app` bundle to confirm it
+  packages cleanly.
+- **Release** (`.github/workflows/release.yml`) — manually triggered from the **Actions**
+  tab. Pick a bump (`patch` / `minor` / `major`); the workflow reads the latest `vX.Y.Z`
+  tag, computes the next version, creates and pushes that tag, builds and zips the signed
+  `.app`, and publishes a GitHub Release with auto-generated notes attached.
+
+**Cutting a release:** Actions → *Release* → *Run workflow* → choose the bump → *Run*.
+No manual tagging or version editing is needed — starting from no tags, the first
+`patch` release is `v0.0.1`.
+
+### Versioning
+
+The marketing version comes from the release tag and the build number from the CI run
+number; `build-app.sh` stamps both into the bundle's `Info.plist`
+(`CFBundleShortVersionString` / `CFBundleVersion`) at build time. The source
+`Resources/Info.plist` is only the local-development default. The app reads these values
+at runtime (`AppVersion.swift`) and shows them in the menu as **Version X.Y.Z**; a bare
+`swift build` binary with no stamped plist shows **Version dev**.
+
 ## Assets
 
 The menu bar uses Apple's `cloud.fill` SF Symbol. The app icon is an original cloud +
