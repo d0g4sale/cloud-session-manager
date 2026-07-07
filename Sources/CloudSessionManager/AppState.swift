@@ -169,7 +169,7 @@ final class AppState: ObservableObject {
         detectCLIVersion()
         fetchCredentials(force: true)
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
+            Task { @MainActor [weak self] in self?.tick() }
         }
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
@@ -528,7 +528,7 @@ final class AppState: ObservableObject {
         process.standardError = stderrPipe
         process.terminationHandler = { [weak self] proc in
             let errData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.isLoggingIn = false
                 if proc.terminationStatus == 0 {
