@@ -46,6 +46,8 @@ jobs:
   # Delegates to the reusable pipeline so the signing steps live in one place.
   release:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    permissions:
+      contents: write     # caller must grant what the reusable workflow requests
     uses: ./.github/workflows/release-build.yml
     with:
       version: ${{ github.ref_name }}
