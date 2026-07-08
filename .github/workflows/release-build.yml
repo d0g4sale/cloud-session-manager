@@ -20,7 +20,7 @@ env:
 
 jobs:
   release:
-    runs-on: macos-15
+    runs-on: macos-latest
     permissions:
       contents: write     # needed to attach the .dmg to a GitHub Release
     steps:
