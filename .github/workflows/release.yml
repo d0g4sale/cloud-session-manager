@@ -14,7 +14,7 @@ env:
   TEAM_ID: MKTMGKS2F9
 
 jobs:
-  # --- Fast, unsigned compile check for main / manual runs (no secrets needed) ---
+  # --- Fast, unsigned compile + unit tests for main / manual runs (no secrets needed) ---
   ci-build:
     if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     runs-on: macos-15
@@ -32,14 +32,17 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version
 
-      # Build without code signing — verifies main compiles, no certs/notary needed.
-      - name: Build
+      # Build and run the unit tests without code signing — verifies main
+      # compiles and the test suite passes, no certs/notary needed. The shared
+      # scheme's Test action runs the cloud-session-managerTests bundle on a
+      # real Mac destination (unit tests must run, not just build).
+      - name: Build & test
         run: |
-          xcodebuild build \
+          xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
-            -configuration Release \
-            -destination 'generic/platform=macOS' \
+            -configuration Debug \
+            -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO
 
   # --- Full Developer ID sign + notarize + release, tags only ---

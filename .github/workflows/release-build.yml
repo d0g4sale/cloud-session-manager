@@ -39,6 +39,16 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version
 
+      # --- Gate the release on the unit tests: don't sign/notarize a bad build ---
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO
+
       # --- Import the Developer ID signing certificate into a throwaway keychain ---
       - name: Import signing certificate
         env:
