@@ -29,30 +29,38 @@ enum MenuBarBadge: Equatable {
 }
 
 enum MenuBarIcon {
-    /// A cloud glyph with an optional status badge composited into its
+    /// The AWS logo with an optional status badge composited into its
     /// bottom-trailing corner. Returned as a **non-template** image so the
     /// badge's color survives in the menu bar (a template image would be
-    /// flattened to a single monochrome tint). The cloud itself uses
+    /// flattened to a single monochrome tint). The logo itself is tinted to
     /// `labelColor`, resolved at draw time inside the handler, so it still
     /// adapts to a light vs dark menu bar.
     static func image(badge: MenuBarBadge?) -> NSImage {
         let size = NSSize(width: 22, height: 18)
         let image = NSImage(size: size, flipped: false) { _ in
-            let cloudCfg = NSImage.SymbolConfiguration(pointSize: 13, weight: .regular)
-                .applying(.init(hierarchicalColor: .labelColor))
-            if let cloud = NSImage(systemSymbolName: "cloud.fill", accessibilityDescription: "AWS SSO")?
-                .withSymbolConfiguration(cloudCfg) {
-                let cs = cloud.size
-                cloud.draw(in: NSRect(x: 0, y: (size.height - cs.height) / 2,
-                                      width: cs.width, height: cs.height))
+            if let logo = NSImage(named: "AWSLogo") {
+                // The Font Awesome mark is wider than it is tall (viewBox
+                // 640×512). Scale it to fill the height, preserving aspect,
+                // then tint the alpha shape to labelColor via source-atop.
+                let logoHeight: CGFloat = 14
+                let logoWidth = logoHeight * (logo.size.width / logo.size.height)
+                let rect = NSRect(x: 0, y: (size.height - logoHeight) / 2,
+                                  width: logoWidth, height: logoHeight)
+                logo.draw(in: rect)
+                NSColor.labelColor.set()
+                rect.fill(using: .sourceAtop)
             }
             if let badge {
-                let badgeCfg = NSImage.SymbolConfiguration(pointSize: 10, weight: .bold)
+                let badgeCfg = NSImage.SymbolConfiguration(pointSize: 8, weight: .bold)
                     .applying(.init(paletteColors: [.white, badge.color]))
                 if let b = NSImage(systemSymbolName: badge.symbol, accessibilityDescription: nil)?
                     .withSymbolConfiguration(badgeCfg) {
                     let bs = b.size
-                    b.draw(in: NSRect(x: size.width - bs.width, y: 0, width: bs.width, height: bs.height))
+                    // Tuck the badge flush into the bottom-trailing corner
+                    // (like the Teams presence dot). Keep y at 0 so the bottom
+                    // of the disc isn't clipped by the image bounds.
+                    b.draw(in: NSRect(x: size.width - bs.width + 1, y: 0,
+                                      width: bs.width, height: bs.height))
                 }
             }
             return true
