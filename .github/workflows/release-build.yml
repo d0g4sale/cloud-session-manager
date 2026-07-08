@@ -16,6 +16,8 @@ env:
   PROJECT: cloud-session-manager.xcodeproj
   SCHEME: cloud-session-manager
   APP_NAME: cloud-session-manager
+  # Filename slug for the packaged DMG and release asset (no spaces, URL-friendly).
+  DMG_NAME: AWS-Sessions
   TEAM_ID: MKTMGKS2F9
 
 jobs:
@@ -112,11 +114,20 @@ jobs:
         run: |
           STAGE="$RUNNER_TEMP/dmg"
           mkdir -p "$STAGE"
-          cp -R "$RUNNER_TEMP/export/$APP_NAME.app" "$STAGE/"
+          # The exported bundle is named after the app's PRODUCT_NAME (e.g.
+          # "AWS Sessions.app"), which differs from $APP_NAME. Discover it so a
+          # product rename never breaks packaging again.
+          APP_PATH="$(find "$RUNNER_TEMP/export" -maxdepth 1 -name '*.app' | head -1)"
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app found in $RUNNER_TEMP/export" >&2
+            ls -la "$RUNNER_TEMP/export" >&2 || true
+            exit 1
+          fi
+          cp -R "$APP_PATH" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
           hdiutil create -volname "Cloud Session Manager" \
             -srcfolder "$STAGE" -ov -format UDZO \
-            "$RUNNER_TEMP/$APP_NAME.dmg"
+            "$RUNNER_TEMP/$DMG_NAME.dmg"
 
       - name: Notarize & staple
         env:
@@ -125,23 +136,23 @@ jobs:
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
         run: |
           echo "$NOTARY_KEY_BASE64" | base64 --decode -o "$RUNNER_TEMP/key.p8"
-          xcrun notarytool submit "$RUNNER_TEMP/$APP_NAME.dmg" \
+          xcrun notarytool submit "$RUNNER_TEMP/$DMG_NAME.dmg" \
             --key "$RUNNER_TEMP/key.p8" \
             --key-id "$NOTARY_KEY_ID" \
             --issuer "$NOTARY_ISSUER_ID" \
             --wait
           # Staple the ticket so it verifies offline.
-          xcrun stapler staple "$RUNNER_TEMP/$APP_NAME.dmg"
+          xcrun stapler staple "$RUNNER_TEMP/$DMG_NAME.dmg"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.APP_NAME }}-dmg
-          path: ${{ runner.temp }}/${{ env.APP_NAME }}.dmg
+          name: ${{ env.DMG_NAME }}-dmg
+          path: ${{ runner.temp }}/${{ env.DMG_NAME }}.dmg
 
       # Attach the DMG to the GitHub Release for this tag (creates it if needed).
       - name: Attach to release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.version }}
-          files: ${{ runner.temp }}/${{ env.APP_NAME }}.dmg
+          files: ${{ runner.temp }}/${{ env.DMG_NAME }}.dmg
