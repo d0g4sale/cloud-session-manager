@@ -17,7 +17,7 @@ jobs:
   # --- Fast, unsigned compile + unit tests for main / manual runs (no secrets needed) ---
   ci-build:
     if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
 
