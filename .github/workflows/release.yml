@@ -19,7 +19,7 @@ jobs:
     if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Use the newest stable Xcode the runner image ships. This auto-tracks
       # runner updates instead of pinning a version that may not be installed.

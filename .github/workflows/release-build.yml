@@ -24,7 +24,7 @@ jobs:
     permissions:
       contents: write     # needed to attach the .dmg to a GitHub Release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.version }}
 
@@ -124,14 +124,14 @@ jobs:
           xcrun stapler staple "$RUNNER_TEMP/$APP_NAME.dmg"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}-dmg
           path: ${{ runner.temp }}/${{ env.APP_NAME }}.dmg
 
       # Attach the DMG to the GitHub Release for this tag (creates it if needed).
       - name: Attach to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.version }}
           files: ${{ runner.temp }}/${{ env.APP_NAME }}.dmg
