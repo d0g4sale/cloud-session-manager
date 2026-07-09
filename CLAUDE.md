@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A macOS menu-bar app (SwiftUI, `MenuBarExtra`) that manages AWS IAM Identity Center (SSO) sessions. It shows SSO/credential status at a glance, signs in/out, auto-renews the SSO access token before it expires, and provides a GUI editor for the profiles and sso-sessions in `~/.aws/config`. The product ships as **"AWS Sessions.app"** (bundle id `com.mckaymic.cloud-session-manager`); the Xcode target/scheme is `cloud-session-manager`.
+A macOS menu-bar app (SwiftUI, with an AppKit `NSStatusItem` menu) that manages AWS IAM Identity Center (SSO) sessions. It shows SSO/credential status at a glance, signs in/out, auto-renews the SSO access token before it expires, and provides a GUI editor for the profiles and sso-sessions in `~/.aws/config`. The product ships as **"AWS Sessions.app"** (bundle id `com.mckaymic.cloud-session-manager`); the Xcode target/scheme is `cloud-session-manager`.
 
 ## Commands
 
@@ -42,7 +42,9 @@ The app does **not** own AWS state — the AWS CLI and its files are the source 
 
 **Account/role discovery** (`SSOPortalClient.swift`) — lists accounts/roles by calling the SSO Portal REST API (`portal.sso.<region>.amazonaws.com`) directly with the cached bearer token, so the token stays out of process arguments (unlike shelling out). Populates the profile editor's account/role dropdowns.
 
-**UI** — `CloudSessionManagerApp.swift` (menu-bar-only, `.accessory` activation policy / `LSUIElement`; the label's `onAppear` auto-opens the Profile Manager when `needsSetup`), `MenuContent.swift` (the menu), `ProfileManagerView.swift` (the "AWS Profiles" window editor), `MenuBarIcon.swift` (AWS-logo icon with a colored status badge), `AWSReference.swift` (static region/output lists + form controls).
+**UI** — `CloudSessionManagerApp.swift` (menu-bar-only, `.accessory` activation policy / `LSUIElement`; the SwiftUI `App` is just a no-op `Settings` scene — an `AppDelegate` owns the `AppState`, the status item, and the "AWS Profiles" window, and auto-opens the editor at launch when `needsSetup`), `MenuContent.swift` (the `MenuBarController`: owns the `NSStatusItem` and builds its `NSMenu` on demand in `menuNeedsUpdate`), `ProfileManagerView.swift` (the "AWS Profiles" window editor, hosted in an AppKit `NSWindow`), `MenuBarIcon.swift` (AWS-logo icon with a colored status badge), `AWSReference.swift` (static region/output lists + form controls).
+
+The menu is AppKit rather than SwiftUI's `MenuBarExtra` on purpose: profile rows use **alternate menu items** (`NSMenuItem.isAlternate` + an `.option` modifier mask) so holding ⌥ live-swaps a profile from "make default" to "open in the AWS console" — the mechanism `MenuBarExtra` can't express. Each profile is a pair of items backed by a custom-drawn `ProfileRowView` (the checkmark, title, and a right-justified ↗ link icon are drawn by hand, since a standard `NSMenuItem` can't trail an arbitrary image); highlight is read from `enclosingMenuItem.isHighlighted` so the ⌥ swap can't strand a row highlighted. `MenuBarController` re-renders the status icon on `AppState.objectWillChange` (guarded so it only recomposes when the badge changes).
 
 ## Conventions worth keeping
 

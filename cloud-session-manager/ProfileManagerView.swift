@@ -158,7 +158,8 @@ private struct ProfilesTab: View {
                     List(selection: $selection) {
                         ForEach(state.profiles) { profile in
                             ProfileRow(profile: profile,
-                                       isDefault: state.defaultProfileName == profile.name)
+                                       isDefault: state.defaultProfileName == profile.name,
+                                       consoleURL: state.consoleURL(for: profile))
                                 .tag(profile.name)
                         }
                     }
@@ -377,6 +378,7 @@ private struct ProfilesTab: View {
 private struct ProfileRow: View {
     let profile: ProfileInfo
     let isDefault: Bool
+    let consoleURL: URL?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -392,6 +394,13 @@ private struct ProfileRow: View {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.yellow)
                     .help("Default profile")
+            }
+            if let consoleURL {
+                Link(destination: consoleURL) {
+                    Image(systemName: "arrow.up.forward.app")
+                }
+                .buttonStyle(.borderless)
+                .help("Open this account & role in the AWS console")
             }
         }
         .padding(.vertical, 2)

@@ -11,6 +11,7 @@ The AWS CLI and its files remain the source of truth: the app reads and writes `
 - **Credential countdown** — shows when your default profile's resolved role credentials expire (via `aws configure export-credentials`).
 - **Profile & session editor** — add, edit, and delete `[profile …]` and `[sso-session …]` entries. Account and role dropdowns are populated live from the SSO portal for the accounts your login can reach.
 - **Default profile management** — pick a default with one click; the app copies the profile's settings into `[default]` and keeps them in sync if the source profile changes. Hand-authored `[default]` sections are left untouched.
+- **Open the AWS console** — jump straight to a profile's account and role in the web console, either from the menu (hold ⌥) or from the ↗ link beside each profile in the editor.
 - **Config-safe** — comments, blank lines, and unknown keys round-trip untouched, and every save keeps a `config.awssso.bak` backup.
 - **Sign in / out** — trigger `aws sso login` / `aws sso logout` from the menu.
 
@@ -34,9 +35,43 @@ The app runs as a menu-bar item only — it has no Dock icon or main window. On 
 
 Your shell commands then resolve against the default profile; the menu bar shows when those credentials expire and renews the session in the background.
 
+## Everyday use
+
+Click the menu-bar icon to open the menu. From top to bottom:
+
+- **Status line** — a summary of your current session and credential expiry (grayed; it's informational).
+- **Renew SSO Login / Log Out of SSO** — force a token renewal, or sign out. When you're signed out, this is a single **Log In to SSO** button instead.
+- **Default Profile** — every profile you've configured, with a checkmark on the current default. **Click a profile to make it the default** — the app rewrites `[default]` in `~/.aws/config`, so plain `aws` commands follow along immediately.
+  - **Hold ⌥ (Option)** and a ↗ appears on the right of each profile that has an account and role. **⌥-click** opens that account and role in the AWS web console in your browser instead of changing your default.
+- **Copy "export AWS_PROFILE=…"** — copies the shell command to point a terminal at the current default profile.
+- **Manage Profiles…** — opens the editor window (see below).
+
+### Switching your default profile
+
+Making a profile the default copies its settings into the `[default]` section of `~/.aws/config`, so any tool that reads that file uses it right away. Some tools instead read the `AWS_PROFILE` environment variable; the **Shell Setup** tab in the editor has a copy-paste zsh snippet that keeps `AWS_PROFILE` pointed at whatever default you pick.
+
+### Opening the AWS console
+
+To open the web console for a specific account and role:
+
+- **From the menu:** hold **⌥** and click the profile.
+- **From the editor:** click the ↗ link next to the profile in the **Profiles** tab.
+
+Either way the app builds an Identity Center access-portal deep link for that account and role and opens it in your default browser. If your portal session has lapsed you'll be asked to sign in first, then land on the console. (Profiles without an account and role — or whose SSO session has no start URL — don't show the link.)
+
+### Editing profiles and sessions
+
+**Manage Profiles…** opens a window with three tabs:
+
+- **Profiles** — add, edit, or delete `[profile …]` entries. When you're signed in, the account and role dropdowns are populated live from the SSO portal, so you can pick from the accounts and roles your login can actually reach instead of typing IDs.
+- **SSO Sessions** — manage `[sso-session …]` entries: the Identity Center start URL, region, and registration scopes.
+- **Shell Setup** — the optional `AWS_PROFILE` sync snippet described above.
+
+Every save keeps a `config.awssso.bak` backup next to `~/.aws/config`, and your comments, blank lines, and any keys the app doesn't manage are preserved.
+
 ## Development
 
-Built with SwiftUI (`MenuBarExtra`). Open `cloud-session-manager.xcodeproj` in Xcode, or use the command line:
+Built with SwiftUI, with an AppKit `NSStatusItem` menu (so profile rows can show a right-justified console link under ⌥). Open `cloud-session-manager.xcodeproj` in Xcode, or use the command line:
 
 ```bash
 # Build

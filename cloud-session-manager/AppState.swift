@@ -575,6 +575,33 @@ final class AppState: ObservableObject {
         NSWorkspace.shared.open(Self.cliInstallDocsURL)
     }
 
+    /// Builds the AWS access-portal deep link that opens the web console signed
+    /// in as this profile's account + role, e.g.
+    /// `https://acme.awsapps.com/start/#/console?account_id=…&role_name=…`.
+    /// Returns nil when the profile lacks an account/role, or its SSO session
+    /// has no start URL to anchor the portal.
+    func consoleURL(for profile: ProfileInfo) -> URL? {
+        guard !profile.accountID.isEmpty, !profile.roleName.isEmpty,
+              let session = sessions.first(where: { $0.name == profile.ssoSession }) else { return nil }
+        var base = session.startURL.trimmingCharacters(in: .whitespaces)
+        guard !base.isEmpty else { return nil }
+        // Normalize to the portal's `/start` root, dropping any existing
+        // fragment or trailing slash the user may have entered.
+        if let range = base.range(of: "/start") {
+            base = String(base[..<range.upperBound])
+        } else {
+            if base.hasSuffix("/") { base.removeLast() }
+            base += "/start"
+        }
+        // The query lives inside the SPA's hash fragment, so encode the role
+        // ourselves rather than relying on URLComponents' query handling.
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert(charactersIn: "-._~")
+        let role = profile.roleName
+            .addingPercentEncoding(withAllowedCharacters: allowed) ?? profile.roleName
+        return URL(string: "\(base)/#/console?account_id=\(profile.accountID)&role_name=\(role)")
+    }
+
     // MARK: - SSO account & role discovery
 
     func roleKey(session: String, accountID: String) -> String { "\(session)\t\(accountID)" }
