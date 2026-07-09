@@ -143,7 +143,7 @@ jobs:
           # notarize/upload/attach steps reference the same file.
           DMG_BASENAME="${DMG_NAME}-${VERSION#v}"
           echo "DMG_BASENAME=$DMG_BASENAME" >> "$GITHUB_ENV"
-          hdiutil create -volname "Cloud Session Manager" \
+          hdiutil create -volname "AWS Sessions" \
             -srcfolder "$STAGE" -ov -format UDZO \
             "$RUNNER_TEMP/$DMG_BASENAME.dmg"
 

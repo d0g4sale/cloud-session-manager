@@ -62,7 +62,7 @@ struct MenuContent: View {
 
         Text("Version \(AppVersion.displayString)")
 
-        Button("Quit Cloud Session Manager") {
+        Button("Quit AWS Sessions") {
             NSApp.terminate(nil)
         }
     }

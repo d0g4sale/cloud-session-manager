@@ -98,7 +98,7 @@ private struct CLIMissingBanner: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("AWS CLI not installed")
                     .font(.headline)
-                Text("This app drives the `aws` command to sign in and read credentials. Install it, then Cloud Session Manager will pick it up automatically.")
+                Text("This app drives the `aws` command to sign in and read credentials. Install it, then AWS Sessions will pick it up automatically.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -667,7 +667,7 @@ private struct ShellSetupTab: View {
 
     private static let snippet = """
     # AWS_PROFILE tracks the `profile = <name>` marker under [default] in
-    # ~/.aws/config (written by the Cloud Session Manager menu bar app). A precmd hook re-reads
+    # ~/.aws/config (written by the AWS Sessions menu bar app). A precmd hook re-reads
     # it before each prompt, so switching the default profile in the app takes
     # effect on your next command without re-sourcing.
     _sync_aws_profile() {
