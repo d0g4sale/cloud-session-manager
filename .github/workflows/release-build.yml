@@ -122,6 +122,8 @@ jobs:
 
       # --- Package a .dmg, notarize it, and staple the ticket ---
       - name: Create DMG
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
           STAGE="$RUNNER_TEMP/dmg"
           mkdir -p "$STAGE"
@@ -136,9 +138,14 @@ jobs:
           fi
           cp -R "$APP_PATH" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
+          # Embed the version (tag without its leading "v") in the DMG filename,
+          # e.g. AWS-Sessions-1.2.3.dmg. Exported to $GITHUB_ENV so the later
+          # notarize/upload/attach steps reference the same file.
+          DMG_BASENAME="${DMG_NAME}-${VERSION#v}"
+          echo "DMG_BASENAME=$DMG_BASENAME" >> "$GITHUB_ENV"
           hdiutil create -volname "Cloud Session Manager" \
             -srcfolder "$STAGE" -ov -format UDZO \
-            "$RUNNER_TEMP/$DMG_NAME.dmg"
+            "$RUNNER_TEMP/$DMG_BASENAME.dmg"
 
       - name: Notarize & staple
         env:
@@ -147,23 +154,23 @@ jobs:
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
         run: |
           echo "$NOTARY_KEY_BASE64" | base64 --decode -o "$RUNNER_TEMP/key.p8"
-          xcrun notarytool submit "$RUNNER_TEMP/$DMG_NAME.dmg" \
+          xcrun notarytool submit "$RUNNER_TEMP/$DMG_BASENAME.dmg" \
             --key "$RUNNER_TEMP/key.p8" \
             --key-id "$NOTARY_KEY_ID" \
             --issuer "$NOTARY_ISSUER_ID" \
             --wait
           # Staple the ticket so it verifies offline.
-          xcrun stapler staple "$RUNNER_TEMP/$DMG_NAME.dmg"
+          xcrun stapler staple "$RUNNER_TEMP/$DMG_BASENAME.dmg"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.DMG_NAME }}-dmg
-          path: ${{ runner.temp }}/${{ env.DMG_NAME }}.dmg
+          name: ${{ env.DMG_BASENAME }}-dmg
+          path: ${{ runner.temp }}/${{ env.DMG_BASENAME }}.dmg
 
       # Attach the DMG to the GitHub Release for this tag (creates it if needed).
       - name: Attach to release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ inputs.version }}
-          files: ${{ runner.temp }}/${{ env.DMG_NAME }}.dmg
+          files: ${{ runner.temp }}/${{ env.DMG_BASENAME }}.dmg
