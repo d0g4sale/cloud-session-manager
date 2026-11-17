@@ -27,7 +27,7 @@ struct CLIVersionTests {
     /// rest of the environment is passed through untouched.
     @Test func subprocessEnvironmentStripsProfileVars() {
         let env = AppState.awsSubprocessEnvironment([
-            "AWS_PROFILE": "stridyn-dev",
+            "AWS_PROFILE": "dev",
             "AWS_DEFAULT_PROFILE": "old",
             "PATH": "/usr/bin",
             "AWS_REGION": "us-west-2",

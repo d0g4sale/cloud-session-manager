@@ -277,7 +277,7 @@ private struct ProfilesTab: View {
     }
 
     /// When the profile name is still blank, derive one from the account name
-    /// (e.g. "Stridyn Dev" → "stridyn-dev"). Leaves a user-entered name alone.
+    /// (e.g. "Dev" → "dev"). Leaves a user-entered name alone.
     private func suggestName(from account: SSOAccount) {
         guard draft.name.trimmingCharacters(in: .whitespaces).isEmpty,
               !account.accountName.isEmpty else { return }
@@ -294,7 +294,7 @@ private struct ProfilesTab: View {
     private var editor: some View {
         Form {
             Section {
-                TextField("Profile name", text: $draft.name, prompt: Text("e.g. stridyn-dev"))
+                TextField("Profile name", text: $draft.name, prompt: Text("e.g. dev"))
             } header: {
                 HStack {
                     Text(editingOriginalName == nil ? "New Profile" : "Edit Profile")
@@ -360,7 +360,7 @@ private struct ProfilesTab: View {
                                 state.setDefaultProfile(profile)
                             }
                         }
-                        .help("Copy this profile into [default] so plain `aws` commands use it")
+                        .help("Copy this profile into [default] so plain aws commands use it")
                     }
                     Spacer()
                 }

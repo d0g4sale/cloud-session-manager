@@ -82,7 +82,7 @@ struct SSOAccount: Identifiable, Hashable {
     let emailAddress: String
 
     var id: String { accountID }
-    /// Menu label, e.g. "Stridyn Dev — 123456789012".
+    /// Menu label, e.g. "Dev — 123456789012".
     var menuLabel: String {
         accountName.isEmpty ? accountID : "\(accountName) — \(accountID)"
     }

@@ -69,8 +69,8 @@ struct AccountDiscoveryTests {
     }
 
     @Test func menuLabelFallsBackToIDWhenUnnamed() {
-        #expect(SSOAccount(accountID: "123456789012", accountName: "Stridyn Dev",
-                           emailAddress: "").menuLabel == "Stridyn Dev — 123456789012")
+        #expect(SSOAccount(accountID: "123456789012", accountName: "Dev",
+                           emailAddress: "").menuLabel == "Dev — 123456789012")
         #expect(SSOAccount(accountID: "123456789012", accountName: "",
                            emailAddress: "").menuLabel == "123456789012")
     }

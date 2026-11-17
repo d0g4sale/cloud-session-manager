@@ -9,7 +9,7 @@ enum ConfigLine: Equatable {
 
 final class ConfigSection {
     /// Section name as it appears between brackets, e.g. "default",
-    /// "profile stridyn-dev", "sso-session aws-sso".
+    /// "profile dev", "sso-session aws-sso".
     var name: String
     var lines: [ConfigLine]
 
