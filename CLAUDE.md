@@ -26,7 +26,7 @@ xcodebuild test -project cloud-session-manager.xcodeproj -scheme cloud-session-m
 
 Tests use the **Swift Testing** framework (`import Testing`, `@Suite`, `@Test`, `#expect`), not XCTest. Deployment target is macOS 26.0; Swift 5.
 
-Releases run via GitHub Actions: `auto-release.yml` (manual `workflow_dispatch`, computes the next semver tag) and `release.yml` (on `v*` tags), both calling the reusable `release-build.yml`, which runs the unit tests, then Developer ID–signs, notarizes, and attaches a DMG to the GitHub Release. `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` in the bundle are stamped by CI; a local build shows "dev" (see `AppVersion`).
+Releases run via GitHub Actions: `ci.yml` builds and runs the unit tests on pushes to main and PRs; `release.yml` (manual `workflow_dispatch` with an auto/patch/minor/major bump — `auto` reads Conventional Commits — or a pushed `v*` tag) runs the unit tests, Developer ID–signs, notarizes and staples, then publishes a GitHub Release with a DMG, ZIP and `SHA256SUMS.txt`; the tag is only created after the build succeeds. Both are thin callers of the reusable workflows in [d0g4sale/macos-release-workflows](https://github.com/d0g4sale/macos-release-workflows) (shared with Brewui and container-manager); per-repo settings live in `.github/build.env`. `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` in the bundle are stamped by CI; a local build shows "dev" (see `AppVersion`).
 
 ## Architecture
 

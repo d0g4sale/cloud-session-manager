@@ -22,7 +22,7 @@ The AWS CLI and its files remain the source of truth: the app reads and writes `
 
 ## Installation
 
-Download the latest `AWS-Sessions.dmg` from the [Releases](../../releases) page, open it, and drag **AWS Sessions** to your Applications folder. The build is Developer ID–signed and notarized, so it runs without Gatekeeper warnings.
+Download the latest `AWS-Sessions-<version>.dmg` from the [Releases](../../releases) page, open it, and drag **AWS Sessions** to your Applications folder. The build is Developer ID–signed and notarized, so it runs without Gatekeeper warnings.
 
 The app runs as a menu-bar item only — it has no Dock icon or main window. On first launch, if you have no profiles configured yet, it opens the profile editor automatically.
 
@@ -86,4 +86,4 @@ See [CLAUDE.md](CLAUDE.md) for a full tour of the architecture.
 
 ### Releasing
 
-Releases are produced by GitHub Actions. Run the **Auto Release** workflow and pick a semver bump (patch/minor/major); it tags the commit, then builds, signs, notarizes, and attaches the DMG to a GitHub Release. Pushing a `v*` tag directly triggers the same build.
+Releases are produced by GitHub Actions. Run the **Release** workflow and pick a bump (`auto` derives it from Conventional Commits since the last tag, or choose patch/minor/major); it tests, builds, signs, and notarizes, then creates the tag and a GitHub Release with the DMG, a ZIP, and `SHA256SUMS.txt`. Pushing a `v*` tag directly releases that tag.
